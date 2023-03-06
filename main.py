@@ -49,5 +49,13 @@ if __name__ == "__main__":
         help="Path to the directory that contains the data",
     )
     options = parser.parse_args()
+
+    http_proxy = os.environ.get("http_proxy")
+    https_proxy = os.environ.get("https_proxy")
+    if http_proxy:
+        os.environ["HTTP_PROXY"] = http_proxy
+    if https_proxy:
+        os.environ["HTTPS_PROXY"] = https_proxy
+
     construct_index(options.directory_path)
     ask_ai()
