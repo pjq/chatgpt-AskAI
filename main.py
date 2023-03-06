@@ -1,7 +1,7 @@
+import argparse
+import os
 from gpt_index import SimpleDirectoryReader, GPTListIndex, readers, GPTSimpleVectorIndex, LLMPredictor, PromptHelper
 from langchain import OpenAI
-import sys
-import os
 from IPython.display import Markdown, display
 
 
@@ -15,8 +15,9 @@ def construct_index(directory_path):
     # set chunk size limit
     chunk_size_limit = 600
 
+    openai_api_key = os.environ.get("OPENAI_API_KEY")
     # define LLM
-    llm_predictor = LLMPredictor(llm=OpenAI(temperature=0.5, model_name="text-davinci-003", max_tokens=num_outputs))
+    llm_predictor = LLMPredictor(llm=OpenAI(temperature=0.5, model_name="text-davinci-003", max_tokens=num_outputs, openai_api_key=openai_api_key))
     prompt_helper = PromptHelper(max_input_size, num_outputs, max_chunk_overlap, chunk_size_limit=chunk_size_limit)
 
     documents = SimpleDirectoryReader(directory_path).load_data()
@@ -38,3 +39,15 @@ def ask_ai():
         display(Markdown(f"Response: <b>{response.response}</b>"))
 
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--directory_path",
+        dest="directory_path",
+        type=str,
+        default="data",
+        help="Path to the directory that contains the data",
+    )
+    options = parser.parse_args()
+    construct_index(options.directory_path)
+    ask_ai()
