@@ -6,6 +6,7 @@ from IPython.display import Markdown, display
 
 
 def construct_index(directory_path):
+    print(f"construct_index: {directory_path}")
     # set maximum input size
     max_input_size = 4096
     # set number of output tokens
@@ -36,7 +37,8 @@ def ask_ai():
     while True:
         query = input("What do you want to ask? ")
         response = index.query(query, response_mode="compact")
-        display(Markdown(f"Response: <b>{response.response}</b>"))
+        print(response.response)
+        # display(Markdown(f"Response: <b>{response.response}</b>"))
 
 
 if __name__ == "__main__":
@@ -52,10 +54,12 @@ if __name__ == "__main__":
 
     http_proxy = os.environ.get("http_proxy")
     https_proxy = os.environ.get("https_proxy")
+    print(f"http_proxy: {http_proxy}, https_proxy: {https_proxy}")
     if http_proxy:
         os.environ["HTTP_PROXY"] = http_proxy
     if https_proxy:
         os.environ["HTTPS_PROXY"] = https_proxy
 
-    construct_index(options.directory_path)
+    if not os.path.exists("index.json"):
+        construct_index(options.directory_path)
     ask_ai()
