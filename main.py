@@ -1,4 +1,5 @@
 import argparse
+import sys
 import os
 from gpt_index import SimpleDirectoryReader, GPTListIndex, readers, GPTSimpleVectorIndex, LLMPredictor, PromptHelper
 from langchain import OpenAI
@@ -39,7 +40,10 @@ def ask_ai(directory_path):
     json_filename = f"{dir_basename}.json"
     index = GPTSimpleVectorIndex.load_from_disk(json_filename)
     while True:
-        query = input("Ask: \n")
+        # query = input("Ask: \n")
+        sys.stdout.write("Ask: \n")
+        sys.stdout.flush()
+        query = sys.stdin.readline().strip()
         response = index.query(query, response_mode="compact")
         print(f"Answer: {response.response}\n")
         # display(Markdown(f"Response: <b>{response.response}</b>"))
