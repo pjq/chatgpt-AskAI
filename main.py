@@ -27,18 +27,36 @@ def construct_index(directory_path):
         documents, llm_predictor=llm_predictor, prompt_helper=prompt_helper
     )
 
-    index.save_to_disk('index.json')
+    _, dir_basename = os.path.split(directory_path.rstrip(os.sep))
+    json_filename = f"{dir_basename}.json"
+    index.save_to_disk(json_filename)
 
     return index
 
 
-def ask_ai():
-    index = GPTSimpleVectorIndex.load_from_disk('index.json')
+def ask_ai(directory_path):
+    _, dir_basename = os.path.split(directory_path.rstrip(os.sep))
+    json_filename = f"{dir_basename}.json"
+    index = GPTSimpleVectorIndex.load_from_disk(json_filename)
     while True:
         query = input("Ask: \n")
         response = index.query(query, response_mode="compact")
         print(f"Answer: {response.response}\n")
         # display(Markdown(f"Response: <b>{response.response}</b>"))
+
+def batch_ask(directory_path, comments_file):
+    json_filename = f"{os.path.basename(directory_path)}.json"
+    index = GPTSimpleVectorIndex.load_from_disk(json_filename)
+
+    with open(comments_file, 'r') as file:
+        comment_lines = file.readlines()
+
+    for line in comment_lines:
+        if line.startswith("userName:"):
+            comment = line.split("content: ")[1].strip()
+            response = index.query(comment, response_mode="compact")
+            print(f"Comments: {comment}")
+            print(f"AutoReply: {response.response}\n")
 
 
 if __name__ == "__main__":
@@ -50,6 +68,14 @@ if __name__ == "__main__":
         default="data",
         help="Path to the directory that contains the data",
     )
+
+    parser.add_argument(
+        "--comments",
+        dest="comments",
+        type=str,
+        help="Path to the comments.txt file",
+    )
+
     options = parser.parse_args()
 
     http_proxy = os.environ.get("http_proxy")
@@ -60,6 +86,14 @@ if __name__ == "__main__":
     if https_proxy:
         os.environ["HTTPS_PROXY"] = https_proxy
 
-    if not os.path.exists("index.json"):
+    _, dir_basename = os.path.split(options.directory_path.rstrip(os.sep))
+    json_filename = f"{dir_basename}.json"
+    if not os.path.exists(json_filename):
         construct_index(options.directory_path)
-    ask_ai()
+
+    print(f"data path: {options.directory_path}, index json: {json_filename},  comments: {options.comments}")
+
+    if options.comments:
+        batch_ask(options.directory_path, options.comments)
+    else:
+        ask_ai(options.directory_path)
